@@ -29,7 +29,7 @@ jobs:
         working-directory: ./hello-world
         env:
           ECR_REGISTRY: ${{ steps.login-ecr.outputs.registry }}
-          ECR_REPOSITORY: docker-hello-world
+          ECR_REPOSITORY: hello-world
           IMAGE_TAG: latest
         run: |
           docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG .
@@ -41,8 +41,8 @@ jobs:
     needs: build-and-push
     runs-on: ubuntu-latest
     outputs:
-      instance-id: ${{ steps.create-instance.outputs.instance-id }}
-      public-ip: ${{ steps.create-instance.outputs.public-ip }}
+      instance-id: ${{ env.INSTANCE_ID }}
+      public-ip: ${{ env.PUBLIC_IP }}
     steps:
       - uses: actions/checkout@v3
 
@@ -60,7 +60,6 @@ jobs:
           chmod 400 hello-world-key.pem
 
       - name: Create EC2 instance
-        id: create-instance
         run: |
           #!/bin/bash
           set -e
@@ -173,10 +172,6 @@ jobs:
           echo "Instance ID: $INSTANCE_ID"
           echo "Public IP: $PUBLIC_IP"
 
-          # Expose instance details as step outputs for other jobs
-          echo "instance-id=$INSTANCE_ID" >> $GITHUB_OUTPUT
-          echo "public-ip=$PUBLIC_IP" >> $GITHUB_OUTPUT
-
       - name: Upload SSH key
         uses: actions/upload-artifact@v4
         with:
@@ -230,7 +225,7 @@ jobs:
           if [ -z "$IMAGE_URI" ]; then
             echo "Warning: IMAGE_URI is empty, getting from ECR..."
             ECR_REGISTRY=$(aws ecr describe-repositories --repository-names hello-docker-repo --query 'repositories[0].repositoryUri' --output text | cut -d'/' -f1)
-            IMAGE_URI="$ECR_REGISTRY/hello-world:latest"
+            IMAGE_URI="$ECR_REGISTRY/hello-docker-repo:latest"
           fi
           
           echo "Using Image URI: $IMAGE_URI"
