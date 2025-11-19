@@ -16,10 +16,11 @@ jobs:
       - name: Build Docker Image
         uses: docker/build-push-action@v4
         with:
-          context: .
-          file: ./Dockerfile
+          context: ./hello-world
+          file: ./hello-world/Dockerfile
           push: false
           tags: hello-docker-ci:latest
+          load: true
 
       - name: Run Container for Test
         run: |
